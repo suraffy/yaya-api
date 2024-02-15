@@ -40,7 +40,11 @@ app.get("/transactions", async (req, res) => {
     };
 
     // Make API request to YAYA END POINT API
-    const response = await axios.get(`${baseUrl}${endpoint}`, { headers });
+    const queryParams = req.query;
+    const response = await axios.get(`${baseUrl}${endpoint}`, {
+      headers,
+      params: queryParams,
+    });
     // Handle successful response
     // console.log(response);
     res.send(response.data);

@@ -54,6 +54,4 @@ app.get("/transactions", async (req, res) => {
   }
 });
 
-app.listen(port, "localhost", () =>
-  console.log(`App runing on port ${port}...`)
-);
+app.listen(port, () => console.log(`App runing on port ${port}...`));

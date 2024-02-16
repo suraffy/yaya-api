@@ -1,52 +1,81 @@
 const express = require("express");
-const axios = require("axios");
 const crypto = require("crypto");
-const dotenv = require("dotenv");
 const cors = require("cors");
-// Load environment variables
+const axios = require("axios");
+const dotenv = require("dotenv");
+
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-// API credentials (from .env)
 const apiKey = process.env.YAYA_API_KEY;
 const apiSecret = process.env.YAYA_API_SECRET;
-const baseUrl = process.env.YAYA_BASE_URL; // Include base URL from env
+const baseUrl = process.env.YAYA_BASE_URL;
 
-// Endpoint and method
-const endpoint = "/api/en/transaction/find-by-user";
-const method = "GET";
-// Function to generate signature
-function generateSignature(timestamp, body) {
+function generateSignature(timestamp, method, endpoint, body) {
   const preHashString = `${timestamp}${method}${endpoint}${body}`;
   const hmac = crypto.createHmac("sha256", apiSecret);
   hmac.update(preHashString);
   return Buffer.from(hmac.digest()).toString("base64");
 }
-// Route to handle transaction retrieval
+
 app.get("/transactions", async (req, res) => {
+  const endpoint = "/api/en/transaction/find-by-user";
+  const method = "GET";
+
   try {
-    // Get current timestamp
     const timestamp = Date.now();
-    // Generate signature using empty body for GET request
-    const signature = generateSignature(timestamp, "");
-    // Build authentication headers
+
+    const signature = generateSignature(timestamp, method, endpoint, "");
+
     const headers = {
       "YAYA-API-KEY": apiKey,
       "YAYA-API-TIMESTAMP": timestamp,
       "YAYA-API-SIGN": signature,
     };
 
-    // Make API request to YAYA END POINT API
     const queryParams = req.query;
     const response = await axios.get(`${baseUrl}${endpoint}`, {
       headers,
       params: queryParams,
     });
-    // Handle successful response
-    // console.log(response);
+
+    res.send(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching transactions");
+  }
+});
+
+app.post("/search", async (req, res) => {
+  const endpoint = "/api/en/transaction/search";
+  const method = "POST";
+  const query = req.query;
+
+  try {
+    const timestamp = Date.now();
+
+    const signature = generateSignature(
+      timestamp,
+      method,
+      endpoint,
+      JSON.stringify(query)
+    );
+
+    const headers = {
+      "YAYA-API-KEY": apiKey,
+      "YAYA-API-TIMESTAMP": timestamp,
+      "YAYA-API-SIGN": signature,
+    };
+
+    const response = await axios.post(
+      `${baseUrl}${endpoint}`,
+      JSON.stringify(query),
+      { headers }
+    );
+
     res.send(response.data);
   } catch (error) {
     console.error(error);

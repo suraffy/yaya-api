@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
+app.use(express.json());
 const port = process.env.PORT || 3000;
 
 app.use(cors());
@@ -52,7 +53,7 @@ app.get("/transactions", async (req, res) => {
 app.post("/search", async (req, res) => {
   const endpoint = "/api/en/transaction/search";
   const method = "POST";
-  const query = req.query;
+  const query = req.body;
 
   try {
     const timestamp = Date.now();
